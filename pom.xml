@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.msiops.jaxrs</groupId>
   <artifactId>jaxrs-load-balancer</artifactId>
-  <version>0-SNAPSHOT</version>
+  <version>0.1</version>
   <packaging>jar</packaging>
   <name>JAX-RS :: Load balancer integration</name>
   <description>Integration helpers for apps behind reverse proxy</description>
