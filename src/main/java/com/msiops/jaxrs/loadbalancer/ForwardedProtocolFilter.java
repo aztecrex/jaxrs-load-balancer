@@ -23,12 +23,18 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A pre-matching filter that detects load balancer scheme change and sets the
  * incoming scheme accordingly.
  */
 @PreMatching()
 public class ForwardedProtocolFilter implements ContainerRequestFilter {
+
+    private static Logger LOG = LoggerFactory
+            .getLogger(ForwardedProtocolFilter.class);
 
     @Override
     public void filter(final ContainerRequestContext requestContext)
@@ -38,7 +44,11 @@ public class ForwardedProtocolFilter implements ContainerRequestFilter {
                 .getHeaderString("x-forwarded-proto");
         final String fport = requestContext.getHeaderString("x-forwarded-port");
 
+        LOG.debug("fproto {},  fport {}", fproto, fport);
+
         final URI in = requestContext.getUriInfo().getRequestUri();
+
+        LOG.debug("in {}", in);
 
         if (!in.isAbsolute()) {
             /*
@@ -99,6 +109,9 @@ public class ForwardedProtocolFilter implements ContainerRequestFilter {
             }
         }
 
+        LOG.debug("haveHttps {},  havePort {}", haveHttps, havePort);
+        LOG.debug("wantHttps {},  wantPort {}", wantHttps, wantPort);
+
         final String newScheme = haveHttps == wantHttps ? in.getScheme()
                 : (wantHttps ? "https" : "http");
         final int stdPort = wantHttps ? 443 : 80;
@@ -112,7 +125,11 @@ public class ForwardedProtocolFilter implements ContainerRequestFilter {
             // any problem and we just don't modify the url
             return;
         }
+
+        LOG.debug("out {}", out);
+
         if (!in.equals(out)) {
+            LOG.debug("set request uri to {}", out);
             requestContext.setRequestUri(out);
         }
 
