@@ -47,8 +47,9 @@ public class ForwardedProtocolFilter implements ContainerRequestFilter {
         LOG.debug("fproto {},  fport {}", fproto, fport);
 
         final URI in = requestContext.getUriInfo().getRequestUri();
+        final URI inb = requestContext.getUriInfo().getBaseUri();
 
-        LOG.debug("in {}", in);
+        LOG.debug("inb {}", inb);
 
         if (!in.isAbsolute()) {
             /*
@@ -117,20 +118,22 @@ public class ForwardedProtocolFilter implements ContainerRequestFilter {
         final int stdPort = wantHttps ? 443 : 80;
         final int newPort = wantPort == stdPort ? -1 : wantPort;
 
-        final URI out;
+        final URI outb;
         try {
-            out = new URI(newScheme, in.getUserInfo(), in.getHost(), newPort,
-                    in.getPath(), in.getQuery(), in.getFragment());
+            outb = new URI(newScheme, inb.getUserInfo(), inb.getHost(),
+                    newPort, inb.getPath(), inb.getQuery(), inb.getFragment());
         } catch (final URISyntaxException e) {
             // any problem and we just don't modify the url
             return;
         }
 
-        LOG.debug("out {}", out);
+        LOG.debug("outb={}", outb);
 
-        if (!in.equals(out)) {
-            LOG.debug("set request uri to {}", out);
-            requestContext.setRequestUri(out);
+        if (!inb.equals(outb)) {
+            LOG.debug("set request uri to {} {}", outb, in);
+            requestContext.setRequestUri(outb, in);
+        } else {
+            LOG.debug("leave request uri alone {}", in);
         }
 
     }

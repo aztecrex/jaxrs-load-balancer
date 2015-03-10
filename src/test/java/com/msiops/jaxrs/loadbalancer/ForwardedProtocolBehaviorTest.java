@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -72,6 +73,15 @@ public class ForwardedProtocolBehaviorTest {
 
     }
 
+    private static URI baseOf(final URI uri) {
+        try {
+            return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(),
+                    uri.getPort(), null, null, null);
+        } catch (final URISyntaxException e) {
+            throw new AssertionError("base cannot be extracted");
+        }
+    }
+
     private ContainerRequestContext ctx;
 
     private final URI expectedFixedUrl;
@@ -101,6 +111,9 @@ public class ForwardedProtocolBehaviorTest {
 
         final UriInfo uriIn = mock(UriInfo.class);
         when(uriIn.getRequestUri()).thenReturn(this.incomingUrl);
+        if (!this.incomingUrl.isOpaque()) {
+            when(uriIn.getBaseUri()).thenReturn(baseOf(this.incomingUrl));
+        }
 
         this.ctx = mock(ContainerRequestContext.class);
         when(this.ctx.getUriInfo()).thenReturn(uriIn);
@@ -135,7 +148,8 @@ public class ForwardedProtocolBehaviorTest {
             /*
              * then it should set the request URI to the expected value
              */
-            verify(this.ctx).setRequestUri(this.expectedFixedUrl);
+            verify(this.ctx).setRequestUri(baseOf(this.expectedFixedUrl),
+                    this.incomingUrl);
         }
 
     }
